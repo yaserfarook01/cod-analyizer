@@ -1,0 +1,160 @@
+
+Coding Question 1:
+Language: Java_jdbc
+File: main.cs
+Content:
+// You are using Java
+import java.util.*;
+import java.sql.*;
+
+class Main{
+    public static void main(String args[]){
+        String url = "jdbc:mysql://localhost/ri_db";
+        String user = "test";
+        String pwd = "test123";
+        
+        try{
+            Connection con= DriverManager.getConnection(url, user, pwd);
+            Statement stmt = con.createStatement();
+            Scanner sc = new Scanner(System.in);
+            int choice = Integer.parseInt(sc.nextLine());
+            
+            
+            switch(choice){
+                case 4:
+                    sort(con, stmt, sc);
+                    break;
+                case 1:
+                    insert(con, stmt, sc);
+                    break;
+                case 2:
+                    update(con, stmt, sc);
+                    break;
+                case 3:
+                    delete(con, stmt, sc);
+                    break;
+            }
+        }catch(SQLException e){
+            System.out.println(e.getMessage());
+        }
+    }
+    
+
+    public static void display(Connection con, Statement stmt, Scanner sc) throws SQLException{
+        String query = "select * from employee_performance";
+        ResultSet rs = stmt.executeQuery(query);
+        System.out.println("All employee records sorted by performanceScore (descending):");
+        while(rs.next()){
+            int id = rs.getInt(1);
+            String name = rs.getString(2);
+            String dep = rs.getString(3);
+            int sal = rs.getInt(4);
+            String stat = rs.getString(5);
+            int score = rs.getInt(6);
+            
+            
+            System.out.println("ID: "+id+", Name: "+name+", Department: "+dep+", Salary: "+sal+", Status: "+stat+", Score: "+score);
+        }
+    }
+    public static void sort(Connection con, Statement stmt, Scanner sc) throws SQLException{
+        String query = "select * from employee_performance order by performanceScore desc";
+        ResultSet rs = stmt.executeQuery(query);
+        System.out.println("All employee records sorted by performanceScore (descending):");
+        while(rs.next()){
+            int id = rs.getInt(1);
+            String name = rs.getString(2);
+            String dep = rs.getString(3);
+            int sal = rs.getInt(4);
+            String stat = rs.getString(5);
+            int score = rs.getInt(6);
+            
+            
+            System.out.println("ID: "+id+", Name: "+name+", Department: "+dep+", Salary: "+sal+", Status: "+stat+", Score: "+score);
+        }
+    }
+    
+    public static void insert(Connection con, Statement stmt, Scanner sc) throws SQLException{
+        
+        PreparedStatement ptmt = null;
+      
+        int id = sc.nextInt();
+        sc.nextLine();
+        String name = sc.nextLine();
+        String dep = sc.nextLine();
+        int sal = sc.nextInt();
+        sc.nextLine();
+        String stat = sc.nextLine();
+        int score = sc.nextInt();
+        
+        if(sal>7000){
+            String query = "insert into employee_performance values(?,?,?,?,?,?)";
+            ptmt = con.prepareStatement(query);
+            
+            ptmt.setInt(1, id);
+            ptmt.setString(2, name);
+            ptmt.setString(3, dep);
+            ptmt.setInt(4, sal);
+            ptmt.setString(5, stat);
+            ptmt.setInt(6, score);
+            
+            int row = ptmt.executeUpdate();
+            if(row>0){
+                System.out.println("Employee record added successfully.");
+                sort(con, stmt, sc);
+            }
+           
+        }
+        else{
+            System.out.println("Salary must be greater than 7000.");
+        }
+            
+        }
+    public static void update(Connection con, Statement stmt, Scanner sc) throws SQLException{
+        String query = "Update employee_performance set projectStatus=?, performanceScore=? where projectStatus='In progress' and performanceScore<70";
+        
+        String stat = sc.nextLine();
+        int score = sc.nextInt();
+        
+        PreparedStatement ptmt = con.prepareStatement(query);
+        ptmt.setString(1, stat);
+        ptmt.setInt(2, score);
+        
+        int row = ptmt.executeUpdate();
+        if(row>0){
+            System.out.println("Employee record updated successfully.");
+            sort(con, stmt, sc);
+            }
+        }
+    public static void delete(Connection con, Statement stmt, Scanner sc) throws SQLException{
+        String query = "delete from employee_performance where salary>12000 and performanceScore<60 and projectStatus=?";
+        
+        String stat = sc.nextLine();
+        PreparedStatement ptmt = con.prepareStatement(query);
+        
+        ptmt.setString(1, stat);
+        
+        int row = ptmt.executeUpdate();
+        if(row>0){
+            System.out.println("Employee record deleted successfully.");
+            sort(con, stmt, sc);
+            }
+        else{
+            System.out.println("No matching employee records found for deletion.");
+        }
+    }
+}
+    
+
+
+
+
+
+
+
+
+
+
+
+Analysis Report:
+The code lacks proper resource management, such as closing the `Connection`, `Statement`, and `ResultSet`, which can lead to potential memory leaks. Additionally, exception handling is insufficient; it should also handle `NumberFormatException` for parsing user input. Finally, there is no user feedback or validation for invalid choices in the switch statement.
+--------------------------------------------------
