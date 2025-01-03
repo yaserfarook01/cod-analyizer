@@ -1,10 +1,12 @@
 import json
 import requests
 from gpt_analyzer import GPTAnalyzer
+from file_handler import FileHandler
 
 class CodeExtractor:
     def __init__(self):
         self.gpt_analyzer = GPTAnalyzer()
+        self.file_handler = FileHandler()
 
     def get_coding_answers(self, url, auth_token, analysis_prompt):
         try:
@@ -44,42 +46,32 @@ class CodeExtractor:
                     if answer:
                         coding_answers.append(answer)
         
-        self._save_to_file(coding_answers, analysis_prompt)
+        self.file_handler.save_analysis(coding_answers, analysis_prompt, self.gpt_analyzer)
         return coding_answers
 
     def _extract_answer(self, question):
-        student_questions = question.get('student_questions', {})
-        answer = student_questions.get('answer')
-        
-        if answer:
-            try:
+        try:
+            student_questions = question.get('student_questions', {})
+            answer = student_questions.get('answer')
+            
+            if answer:
                 answer_data = json.loads(answer)
-                if isinstance(answer_data.get('answer'), list):  # SQL format
-                    for file in answer_data['answer']:
-                        return {
-                            'language': answer_data.get('language_name', 'Unknown'),
-                            'filename': file.get('filename', ''),
-                            'content': file.get('content', '')
-                        }
-                else:  # C# format
-                    return {
-                        'language': answer_data.get('language_name', 'Unknown'),
-                        'filename': 'main.cs',
-                        'content': answer_data.get('answer', '')
-                    }
-            except json.JSONDecodeError:
-                return None
+                return {
+                    'language': answer_data.get('language_name', 'Unknown'),
+                    'filename': self._get_filename(answer_data.get('language_name', '')),
+                    'content': answer_data.get('answer', ''),
+                    'question_data': question
+                }
+        except json.JSONDecodeError:
+            return None
         return None
 
-    def _save_to_file(self, coding_answers, analysis_prompt):
-        with open('cod.txt', 'w', encoding='utf-8') as f:
-            for i, answer in enumerate(coding_answers, 1):
-                f.write(f"\nCoding Question {i}:\n")
-                f.write(f"Language: {answer['language']}\n")
-                f.write(f"File: {answer['filename']}\n")
-                f.write("Content:\n")
-                f.write(answer['content'])
-                f.write("\n\nAnalysis Report:\n")
-                analysis = self.gpt_analyzer.analyze_code(answer['content'], analysis_prompt)
-                f.write(analysis)
-                f.write("\n" + "-"*50 + "\n")
+    def _get_filename(self, language):
+        extensions = {
+            'Java': 'main.java',
+            'Python': 'main.py',
+            'C#': 'main.cs',
+            'JavaScript': 'main.js',
+            'SQL': 'query.sql'
+        }
+        return extensions.get(language, 'main.txt')
