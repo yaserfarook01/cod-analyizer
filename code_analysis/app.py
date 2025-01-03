@@ -4,14 +4,13 @@ from code_extractor import CodeExtractor
 def main():
     st.title("Code Analyzer")
 
-    # Input fields
     url = st.text_input("Enter the URL:", placeholder="https://admin.ltimindtree.iamneo.ai/result?testId=...")
     auth_token = st.text_area("Enter the Authorization Token:", placeholder="eyJhbGciOiJIUzI1...")
 
-    # Analysis prompt selection
     analysis_prompt = st.selectbox(
         "Select Analysis Focus:",
         [
+            "Check why the testcase failed, give in 3 lines",
             "Check if the code has logical errors and syntax issues only",
             "Verify if the code meets the basic requirements and handles edge cases",
             "Identify any missing critical functionality",
@@ -26,7 +25,6 @@ def main():
             placeholder="Example: Check if the code handles null inputs and implements proper validation"
         )
 
-    # Process button
     if st.button("Analyze Code"):
         if url and auth_token:
             with st.spinner("Processing and analyzing code..."):
@@ -36,12 +34,12 @@ def main():
                 if success:
                     st.success("Analysis complete!")
                     
-                    with open('cod.txt', 'r', encoding='utf-8') as file:
+                    with open('analysis_report.txt', 'r', encoding='utf-8') as file:
                         content = file.read()
                         st.download_button(
                             label="Download Analysis Report",
                             data=content,
-                            file_name="cod.txt",
+                            file_name="analysis_report.txt",
                             mime="text/plain"
                         )
                     
@@ -62,7 +60,9 @@ def main():
         
         The report will include:
         - Original code
-        - Focused 3-line analysis based on selected criteria
+        - Test case analysis
+        - Code structure analysis
+        - AI insights
         """)
 
 if __name__ == "__main__":
